@@ -1,14 +1,13 @@
 from typing import Dict, Any
 from fastapi import HTTPException
-from psycopg2 import connect
 from app.services.general_db import GeneralDB
 from app.utils.database import get_database_connection
 from app.utils.security import encrypt_data, decrypt_data
-from app.core.config import settings
 from telegram import Bot, Update
 
+
 class TelegramDB:
-    
+
     @staticmethod
     def check_entitlements(api_key: str, conn) -> Dict[str, Any]:
         """
@@ -24,22 +23,21 @@ class TelegramDB:
         return db_response
     
     @staticmethod
-    def get_existing_telegram_user(user_id: int) -> str:
+    def get_existing_telegram_user(user_id: int, conn) -> str:
         """
         Check if the user already exists in the telegram_users table and return the chat_id.
         """
         query = "SELECT chat_id FROM telegram_users WHERE user_id = %s"
         
-        with next(get_database_connection()) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (user_id,))
-                result = cursor.fetchone()
-                if result:
-                    return decrypt_data(result[0])  # Decrypt the stored chat_id before returning it
-                return None  # No existing telegram user found
+        with conn.cursor() as cursor:
+            cursor.execute(query, (user_id,))
+            result = cursor.fetchone()
+            if result:
+                return decrypt_data(result[0])  # Decrypt the stored chat_id before returning it
+            return None  # No existing telegram user found
 
     @staticmethod
-    def search_and_store_telegram_user(user_id: int, telegram_bot_token: str) -> Dict[str, Any]:
+    def search_and_store_telegram_user(user_id: int, telegram_bot_token: str, conn) -> Dict[str, Any]:
         """
         Polls the bot for new messages, retrieves user info, and stores it in the telegram_users table.
         """
@@ -66,10 +64,9 @@ class TelegramDB:
                 SET chat_id = EXCLUDED.chat_id, username = EXCLUDED.username
             """
 
-            with next(get_database_connection()) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(query, (encrypted_telegram_user_id, encrypted_username, user_id, encrypted_chat_id))
-                    conn.commit()
+            with conn.cursor() as cursor:
+                cursor.execute(query, (encrypted_telegram_user_id, encrypted_username, user_id, encrypted_chat_id))
+                conn.commit()
 
             return {
                 "message": "User stored successfully",
@@ -87,7 +84,7 @@ class TelegramDB:
         user_id = db_response["user_id"]
 
         # Step 2: Check if the user already has a telegram chat_id assigned
-        existing_chat_id = TelegramDB.get_existing_telegram_user(user_id)
+        existing_chat_id = TelegramDB.get_existing_telegram_user(user_id, conn)
 
         # Step 3: Fetch the bot token from the telegram_bots table
         query = "SELECT telegram_bot_token FROM telegram_bots LIMIT 1"
@@ -110,7 +107,7 @@ class TelegramDB:
             }
 
         # Step 4: If no chat_id, use bot token to poll messages and store user info
-        result = TelegramDB.search_and_store_telegram_user(user_id, telegram_bot_token)
+        result = TelegramDB.search_and_store_telegram_user(user_id, telegram_bot_token, conn)
         return {
             "message": result["message"],
             "chat_id": result["chat_id"],
