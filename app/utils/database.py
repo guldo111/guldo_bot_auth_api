@@ -1,12 +1,10 @@
-# app/utils/database.py
-
-from psycopg2 import connect
 import os
+from psycopg2 import connect
 
 def get_database_connection():
     """
-    Yields a connection to the database.
-
+    Provides a connection to the database.
+    
     Yields:
         Any: Database connection object.
     """
