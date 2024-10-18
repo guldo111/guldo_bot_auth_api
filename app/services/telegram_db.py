@@ -10,19 +10,19 @@ from telegram import Bot, Update
 class TelegramDB:
     
     @staticmethod
-    def check_entitlements(api_key: str) -> Dict[str, Any]:
+    def check_entitlements(api_key: str, conn) -> Dict[str, Any]:
         """
         Verify the API key and check if the user is entitled to Telegram features.
         """
         # Use the GeneralDB method to validate the API key and check for telegram entitlement
-        db_response = GeneralDB.validate_api_key(api_key)
+        db_response = GeneralDB.validate_api_key(api_key, conn)
         entitlements = db_response.get("entitlements", {})
 
         if "telegram" not in entitlements.get("plugins", []):
             raise HTTPException(status_code=403, detail="Telegram plugin not enabled for this API key.")
         
         return db_response
-
+    
     @staticmethod
     def get_existing_telegram_user(user_id: int) -> str:
         """
@@ -78,12 +78,12 @@ class TelegramDB:
             }
 
     @staticmethod
-    def get_or_create_telegram_user(api_key: str) -> Dict[str, Any]:
+    def get_or_create_telegram_user(api_key: str, conn) -> Dict[str, Any]:
         """
         Main function to get or create a Telegram user using the bot token.
         """
         # Step 1: Validate the API key and check for entitlements
-        db_response = TelegramDB.check_entitlements(api_key)
+        db_response = TelegramDB.check_entitlements(api_key, conn)
         user_id = db_response["user_id"]
 
         # Step 2: Check if the user already has a telegram chat_id assigned
@@ -92,15 +92,14 @@ class TelegramDB:
         # Step 3: Fetch the bot token from the telegram_bots table
         query = "SELECT telegram_bot_token FROM telegram_bots LIMIT 1"
         
-        with next(get_database_connection()) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query)
-                result = cursor.fetchone()
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchone()
 
-                if not result:
-                    raise HTTPException(status_code=404, detail="No bot token found in telegram_bots table.")
+            if not result:
+                raise HTTPException(status_code=404, detail="No bot token found in telegram_bots table.")
 
-                telegram_bot_token = decrypt_data(result[0])
+            telegram_bot_token = decrypt_data(result[0])
 
         # If chat_id exists, return it with the bot token
         if existing_chat_id:
