@@ -23,9 +23,8 @@ def get_or_create_telegram_user(request: APIKeyRequest, conn=Depends(get_databas
         # Validate API key first
         db_response = GeneralDB.validate_api_key(request.api_key, conn)
         
-        # Further processing for Telegram user creation or retrieval
-        # Example logic (fill this with actual logic)
-        telegram_user_details = TelegramDB.get_or_create_user(db_response['user_id'], conn)
+        # Call the correct method from TelegramDB
+        telegram_user_details = TelegramDB.get_or_create_telegram_user(request.api_key)
         
         return telegram_user_details
     except HTTPException as e:
