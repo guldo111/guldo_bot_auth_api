@@ -1,6 +1,6 @@
 import secrets
 from cryptography.fernet import Fernet
-from core.config import settings
+from app.core.config import settings
 from typing import Any
 
 cipher_suite = Fernet(settings.encryption_key.encode())

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.pydantic_models import APIKeyRequest
-from services.general_db import GeneralDB
+from app.models.pydantic_models import APIKeyRequest
+from app.services.general_db import GeneralDB
 
 router = APIRouter()
 

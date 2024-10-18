@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.pydantic_models import APIKeyRequest
-from services.telegram_db import TelegramDB
+from app.models.pydantic_models import APIKeyRequest
+from app.services.telegram_db import TelegramDB
 
 router = APIRouter()
 

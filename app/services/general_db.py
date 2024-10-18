@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Depends
 from psycopg2 import connect, OperationalError
-from utils.database import get_database_connection
+from app.utils.database import get_database_connection
 from typing import Dict, Any
 
 class GeneralDB:
