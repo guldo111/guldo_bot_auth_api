@@ -5,3 +5,4 @@ pydantic
 python-dotenv
 cryptography
 pydantic-settings
+python-telegram-bot
