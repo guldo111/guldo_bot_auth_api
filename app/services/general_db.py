@@ -1,3 +1,5 @@
+# app/services/general_db.py
+
 from fastapi import HTTPException, Depends
 from psycopg2 import connect, OperationalError
 from app.utils.database import get_database_connection

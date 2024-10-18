@@ -1,3 +1,5 @@
+# app/models/pydantic_models.py
+
 from pydantic import BaseModel
 
 class StoreTelegramUserRequest(BaseModel):
